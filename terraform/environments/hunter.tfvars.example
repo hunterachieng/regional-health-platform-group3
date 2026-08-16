@@ -1,0 +1,9 @@
+# Copy to hunter.tfvars (gitignored) and adjust. One file per team member:
+# hunter.tfvars, joyce.tfvars, lwam.tfvars, minage.tfvars, wairimu.tfvars
+
+project_name   = "rh-hunter"
+db_name        = "capacity_lab"
+db_username    = "app"
+instance_class = "db.t3.micro"
+secret_name    = "regional-health/hunter/db"
+instance_type  = "t3.small"
