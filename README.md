@@ -2,79 +2,77 @@
 
 Assignment 2 group platform repo: Terraform on LocalStack, RDS MySQL, Secrets Manager, CI gates, and observability for the Regional Health capacity lab.
 
-**Team:** Hunter, Joyce, Lwam, Minage, Wairimu
+**Team:** Hunter, Joyce, Lwam, Minage, Wairimu  
+**Repo:** `git@github.com:hunterachieng/regional-health-platform-group3.git`
 
 ## Repos
 
 | Repo | Purpose |
 |------|---------|
-| **This repo** (`regional-health-platform-group3`) | Shared modules, CI, conventions — group graded |
-| [db-capacity-engineering-lab](https://github.com/hunterachieng/db-capacity-engineering-lab) | Hunter's Assignment 1 individual work (journal, SCARS, A1 evidence) |
-| Each member's fork / individual repo | Individual rehost deploy + personal evidence (if separate from group) |
+| **This repo** | Shared modules, CI, conventions — group graded |
+| [db-capacity-engineering-lab](https://github.com/hunterachieng/db-capacity-engineering-lab) | Assignment 1 individual work (journal, SCARS) |
+| Personal repo / tfvars | Individual rehost evidence (if separate) |
 
-**Clone (team):**
+## Prerequisites
+
+- **Node 22** (`cd api && nvm use` — see `api/.nvmrc`)
+- **Docker** + Docker Compose
+- **LocalStack Hobby token** → `LOCALSTACK_AUTH_TOKEN` (for cloud path; see `ASSIGNMENT-A2.md`)
+- **Codespace 4-core / 16 GB** or Linux VM for LocalStack EC2 work (not Mac Docker Desktop)
+
+## Run locally (now)
+
+**Full guide:** [docs/LOCAL-DEV.md](./docs/LOCAL-DEV.md)
 
 ```bash
 git clone git@github.com:hunterachieng/regional-health-platform-group3.git
 cd regional-health-platform-group3
+
+docker compose up -d --build
+docker compose exec capacity-api bash /usr/local/bin/seed.sh   # first time
+
+curl http://localhost:3010/healthz
+curl http://localhost:3010/readyz
 ```
 
-## Local folder layout (Hunter's machine)
+| Service | URL |
+|---------|-----|
+| API | http://localhost:**3010** |
+| Grafana | http://localhost:**3003** |
+| Prometheus | http://localhost:**9091** |
 
-```
-~/dev-ops/
-├── db-capacity-engineering-lab/          # A1 individual repo (keep as-is)
-└── regional-health-platform-group3/    # A2 group repo (this project)
-```
+Host ports differ from the A1 repo so **both stacks can run on one machine** (`rh-g3-*` container names).
 
-## Before you start
-
-1. Read `ASSIGNMENT-A2.md` and `TEAM_PLAN.md`
-2. LocalStack Hobby token → `LOCALSTACK_AUTH_TOKEN` (shell + GitHub Actions secret)
-3. Use **Codespace 4-core / 16 GB** or Linux VM — not Mac Docker Desktop
-4. Fill your row in `CONTRIBUTIONS.md` as PRs merge
-
-## Quick start (when implemented)
+## Cloud path (in progress)
 
 ```bash
-make up      # stand stack from zero
-make verify  # grader check — must pass before submit
+make up       # stand stack from zero — Wairimu
+make verify   # grader check — must pass before submit
 ```
 
-## What each folder is
+Not implemented yet. See `TEAM_PLAN.md` for module ownership.
 
-| Path | Owner | Notes |
-|------|-------|-------|
-| `terraform/modules/data/` | Joyce | RDS + Secrets Manager |
-| `terraform/modules/service/` | Lwam | EC2 + nginx + ALB IaC |
-| `terraform/environments/*.tfvars` | Each person | Individual deploy vars |
-| `.github/workflows/` | Minage | gitleaks, trivy, zizmor |
-| `Makefile`, bootstrap | Wairimu | `make up`, `make verify` |
-| `api/secrets.js`, health endpoints | Hunter | C3 + C4 |
-| `evidence/` | Everyone | A2 artifacts — see `evidence/README.md` |
-| `load-tests/`, `monitoring/` | From A1 | Incident replay + alerts |
+## Implemented so far
 
-## Individual naming
+- [x] `api/secrets.js` — Secrets Manager at boot (+ `MYSQL_*` fallback for local)
+- [x] `/healthz`, `/readyz`, `/debug/secret-source`
+- [x] Docker compose with non-conflicting names/ports
+- [ ] `terraform/modules/data` (Joyce)
+- [ ] `terraform/modules/service` (Lwam)
+- [ ] CI gates (Minage)
+- [ ] `Makefile` / `make verify` (Wairimu)
 
-Use per-person tfvars under `terraform/environments/`:
+## Docs
 
-```
-hunter.tfvars
-joyce.tfvars
-lwam.tfvars
-minage.tfvars
-wairimu.tfvars
-```
+| File | Purpose |
+|------|---------|
+| [docs/LOCAL-DEV.md](./docs/LOCAL-DEV.md) | How to run and test health today |
+| [ASSIGNMENT-A2.md](./ASSIGNMENT-A2.md) | Full brief |
+| [TEAM_PLAN.md](./TEAM_PLAN.md) | Task breakdown + PR owners |
+| [CONTRIBUTIONS.md](./CONTRIBUTIONS.md) | Who authored/reviewed module PRs |
+| [FIDELITY.md](./FIDELITY.md) | LocalStack caveats |
+| [evidence/README.md](./evidence/README.md) | Evidence bundle layout |
 
-Apply example (once root module exists):
+## Individual deploy naming
 
-```bash
-terraform apply -var-file=terraform/environments/hunter.tfvars
-```
-
-## Links
-
-- Assignment brief: `ASSIGNMENT-A2.md`
-- Task breakdown: `TEAM_PLAN.md`
-- LocalStack fidelity notes: `FIDELITY.md`
-- PR authorship log: `CONTRIBUTIONS.md`
+Copy `terraform/environments/hunter.tfvars.example` → `hunter.tfvars` (gitignored) and adjust per person.

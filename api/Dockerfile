@@ -1,5 +1,5 @@
 # Node.js API image for the Regional Health service.
-FROM node:20-slim
+FROM node:22-slim
 
 # The seed script (run inside this container) needs the mysql CLI.
 RUN apt-get update \

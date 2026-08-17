@@ -22,6 +22,8 @@ cd regional-health-platform-group3
 
 Add all five members as **Collaborators** (Write) on GitHub. Each person adds their own `LOCALSTACK_AUTH_TOKEN` as a GitHub Actions secret on this repo (personal Hobby tokens — do not share).
 
+**Local dev today:** [docs/LOCAL-DEV.md](./docs/LOCAL-DEV.md) — Docker ports, health checks, k6.
+
 Assignment 1 taught us how the service breaks. Assignment 2 makes it safe to run and change — Terraform on LocalStack, RDS MySQL, Secrets Manager, CI gates that actually block, and observability that catches the same four bugs in a cloud-shaped environment.
 
 ---
