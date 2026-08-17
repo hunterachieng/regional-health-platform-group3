@@ -1,18 +1,16 @@
 # =============================================================================
-# Regional Health service — local environment
+# Regional Health service — local environment (Group 3)
 #
-# Services:
-#   mysql-db      MySQL 8.0        (primary relational store)
-#   mongo-db      MongoDB 6.0      (audit store)
-#   capacity-api  Node/Express     (the application)
-#   prometheus    metrics scraper  (:9090)
-#   grafana       dashboards       (:3001)
+# Host ports differ from the A1 repo so both stacks can run on one machine.
+# Inside the compose network, services still talk via service names (mysql-db, etc.).
 # =============================================================================
+
+name: rh-g3
 
 services:
   mysql-db:
     image: mysql:8.0
-    container_name: mysql-db
+    container_name: rh-g3-mysql-db
     command:
       - --default-authentication-plugin=mysql_native_password
       - --innodb-lock-wait-timeout=5
@@ -20,7 +18,7 @@ services:
       MYSQL_ROOT_PASSWORD: labpassword
       MYSQL_DATABASE: capacity_lab
     ports:
-      - "3307:3306"
+      - "3308:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
@@ -33,9 +31,9 @@ services:
 
   mongo-db:
     image: mongo:6.0
-    container_name: mongo-db
+    container_name: rh-g3-mongo-db
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongo-data:/data/db
     networks:
@@ -45,7 +43,7 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: capacity-api
+    container_name: rh-g3-capacity-api
     environment:
       PORT: 3000
       # Let V8 believe it may grow its heap larger than the container can back,
@@ -61,7 +59,7 @@ services:
       MONGO_DB: capacity_lab
       REGISTRY_SIMULATED_FAILURES: "0"
     ports:
-      - "3000:3000"
+      - "3010:3000"
     volumes:
       # Make the seed script runnable from inside the container.
       - ./data-seed/seed.sh:/usr/local/bin/seed.sh:ro
@@ -88,9 +86,9 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: prometheus
+    container_name: rh-g3-prometheus
     ports:
-      - "9090:9090"
+      - "9091:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
@@ -100,9 +98,9 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    container_name: grafana
+    container_name: rh-g3-grafana
     ports:
-      - "3001:3000"
+      - "3003:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin

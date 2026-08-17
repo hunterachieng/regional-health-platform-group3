@@ -8,12 +8,14 @@ For each ticket:
 
 1. **Read it** and form a hypothesis from the symptoms alone.
 2. **Reproduce** it with the matching `load-tests/reproduce-<TICKET>.js` script
-   while watching Grafana (http://localhost:3001) and the API logs.
+   while watching Grafana (http://localhost:**3003** in this repo) and the API logs.
 3. **Investigate** using the database and the observability stack — not by
    reading the answer somewhere. Dig into query plans, connection behaviour,
    locks, and memory as appropriate.
 4. **Diagnose & fix**, then re-run the reproduction to prove the fix.
-5. **Write it up** in [`../LAB_JOURNAL.md`](../LAB_JOURNAL.md).
+5. **Write it up** in your lab journal / evidence bundle (see `ASSIGNMENT-A2.md`).
+
+Default API for k6 in this repo: http://localhost:**3010** (see [docs/LOCAL-DEV.md](../docs/LOCAL-DEV.md)).
 
 Always capture a healthy **baseline** first (`load-tests/00-baseline.js`) so you
 have something to compare against.

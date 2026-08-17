@@ -6,12 +6,12 @@
 // against this baseline. This is not an incident — it's your control group.
 //
 // Run:  k6 run load-tests/00-baseline.js
-//       k6 run -e BASE_URL=http://localhost:3000 load-tests/00-baseline.js
+//       k6 run -e BASE_URL=http://localhost:3010 load-tests/00-baseline.js
 // =============================================================================
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:3010';
 
 export const options = {
   scenarios: {
