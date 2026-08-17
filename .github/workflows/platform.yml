@@ -28,6 +28,8 @@ jobs:
     steps:
       - name: Harden runner (egress audit)
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.12.2
+        with:
+          egress-policy: audit
 
       - name: Checkout
         uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v4.2.0
@@ -51,6 +53,8 @@ jobs:
     steps:
       - name: Harden runner (egress audit)
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.12.2
+        with:
+          egress-policy: audit
 
       - name: Checkout
         uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v4.2.0
@@ -64,7 +68,6 @@ jobs:
           scan-ref: .
           exit-code: 1
           severity: CRITICAL,HIGH
-          trivyignores: .trivyignore
 
       - name: Upload trivy config report
         uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # 0.33.1
@@ -95,6 +98,8 @@ jobs:
     steps:
       - name: Harden runner (egress audit)
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.12.2
+        with:
+          egress-policy: audit
 
       - name: Checkout
         uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v4.2.0
@@ -161,6 +166,8 @@ jobs:
     steps:
       - name: Harden runner (egress audit)
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.12.2
+        with:
+          egress-policy: audit
 
       - name: Checkout
         uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v4.2.0
