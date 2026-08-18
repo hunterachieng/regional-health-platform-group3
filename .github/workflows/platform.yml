@@ -7,7 +7,7 @@ on:
         description: Terraform var-file under terraform/ (committed example for CI until per-member tfvars exist)
         required: false
         type: string
-        default: environments/hunter.tfvars.example
+        default: environments/wairimu.tfvars.example
     secrets:
       LOCALSTACK_AUTH_TOKEN:
         description: Personal LocalStack Hobby auth token (deploy job only)
@@ -257,6 +257,14 @@ jobs:
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
 
+      - name: Bootstrap remote state
+        run: bash bootstrap/bootstrap.sh
+        env:
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@8620a60d7c841f00a53b5dd39f0027c2d042082f # v3.1.2
         with:
@@ -265,25 +273,31 @@ jobs:
       - name: Install tflocal
         run: pipx install terraform-local
 
-      - name: Bootstrap remote state (when script exists)
+      - name: Terraform fmt check
         working-directory: terraform
-        run: |
-          if [ -f ../scripts/bootstrap-state.sh ]; then
-            bash ../scripts/bootstrap-state.sh
-          else
-            echo "bootstrap-state.sh not found — Wairimu's Makefile PR will add this"
-          fi
+        run: terraform fmt -check -recursive
 
-      - name: Terraform fmt / validate / tflint
+      - name: tflocal init
         working-directory: terraform
+        env:
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
         run: |
-          if [ ! -f main.tf ]; then
-            echo "terraform/main.tf not found — deploy will skip until Wairimu + Lwam merge root + service modules"
-            exit 0
-          fi
-          terraform fmt -check -recursive
-          tflocal init -input=false
-          tflocal validate
+          tflocal init -input=false \
+            -backend-config="bucket=regional-health-tfstate" \
+            -backend-config="dynamodb_table=regional-health-tflock" \
+            -backend-config="region=us-east-1" \
+            -backend-config="key=rh/ci/terraform.tfstate" \
+            -backend-config='endpoints={s3="http://localhost:4566",dynamodb="http://localhost:4566"}' \
+            -backend-config="skip_credentials_validation=true" \
+            -backend-config="skip_metadata_api_check=true" \
+            -backend-config="skip_region_validation=true" \
+            -backend-config="use_path_style=true"
+
+      - name: tflocal validate
+        working-directory: terraform
+        run: tflocal validate
 
       - name: tflocal apply
         working-directory: terraform
@@ -293,11 +307,6 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           TF_VAR_app_ami_id: ${{ env.AMI_ID }}
         run: |
-          if [ ! -f main.tf ]; then
-            echo "Skipping tflocal apply — root Terraform not merged yet"
-            exit 0
-          fi
-          tflocal init -input=false
           tflocal apply -auto-approve -input=false \
             -var-file="${{ inputs.terraform-var-file }}" \
             -var="app_ami_id=${TF_VAR_app_ami_id}"
