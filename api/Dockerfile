@@ -1,27 +1,30 @@
 # Node.js API image for the Regional Health service.
-FROM node:22-slim
+# Base pinned by digest (C5). CI builds omit mysql-client; local compose sets
+# INSTALL_MYSQL_CLIENT=true for seed.sh.
+FROM node:22-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436
 
-# The seed script (run inside this container) needs the mysql CLI.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends default-mysql-client bash \
-    && rm -rf /var/lib/apt/lists/*
+ARG INSTALL_MYSQL_CLIENT=false
+
+# The seed script (local docker-compose only) needs the mysql CLI.
+RUN if [ "$INSTALL_MYSQL_CLIENT" = "true" ]; then \
+      apt-get update \
+      && apt-get install -y --no-install-recommends default-mysql-client bash \
+      && rm -rf /var/lib/apt/lists/*; \
+    fi
 
 WORKDIR /usr/src/app
 
-COPY package.json ./
-RUN npm install --omit=dev
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev \
+    && npm cache clean --force \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 COPY . .
 
-# C5 image hardening: run as non-root (trivy DS-0002). npm install stays root;
-# chown before switching user so the app can read node_modules at runtime.
+# C5 image hardening: run as non-root (trivy DS-0002).
 RUN groupadd -r appuser \
     && useradd -r -g appuser -d /usr/src/app appuser \
     && chown -R appuser:appuser /usr/src/app
-
-# The seed script lives in ../data-seed and is bind-mounted at runtime by
-# docker-compose to /usr/local/bin/seed.sh (it is outside this build context,
-# so it cannot be COPYed here).
 
 EXPOSE 3000
 

@@ -1,0 +1,8 @@
+# Lab trade-offs documented in FIDELITY.md — not production posture.
+# trivy config still fails on real issues (e.g. 0.0.0.0/0 ingress).
+
+# ALB listener is HTTP because nginx carries real traffic on LocalStack; ALB is IaC-only.
+AVD-AWS-0054
+
+# EC2 egress must reach Aiven MySQL (external SaaS) and apt for nginx at boot.
+AVD-AWS-0104

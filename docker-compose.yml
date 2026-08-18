@@ -43,6 +43,8 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
+      args:
+        INSTALL_MYSQL_CLIENT: "true"
     container_name: rh-g3-capacity-api
     environment:
       PORT: 3000

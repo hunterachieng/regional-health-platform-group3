@@ -3,42 +3,52 @@
 # =============================================================================
 
 variable "project_name" {
-  description = "Per-member stack prefix, e.g. rh-joyce. Used to name the DB instance."
+  description = "Per-member stack prefix, e.g. rh-wairimu. Used in the secret description."
   type        = string
 }
 
 variable "db_name" {
-  description = "Initial database (schema) name created inside the MySQL instance."
+  description = "Database (schema) name inside your Aiven MySQL service."
   type        = string
   default     = "capacity_lab"
-}
-
-variable "db_username" {
-  description = "Master username for the MySQL instance."
-  type        = string
-  default     = "app"
-}
-
-variable "instance_class" {
-  description = "RDS instance class. 10k patients is tiny, so the smallest general-purpose class is plenty."
-  type        = string
-  default     = "db.t3.micro"
-}
-
-variable "allocated_storage" {
-  description = "Allocated storage in GiB. 20 GiB is the RDS-MySQL minimum; the dataset is a few MB."
-  type        = number
-  default     = 20
-}
-
-variable "engine_version" {
-  description = "MySQL engine version. Matches A1 for real InnoDB behaviour in the 2202/2203 replays."
-  type        = string
-  default     = "8.0"
 }
 
 variable "secret_name" {
   description = "Secrets Manager secret name holding the DB credential envelope."
   type        = string
   default     = "regional-health/db"
+}
+
+# --- Aiven connection details ------------------------------------------------
+# From your Aiven service page (aiven.io -> your MySQL service -> Overview).
+# These belong in your gitignored <name>.tfvars, never committed, and are
+# marked sensitive so `terraform plan`/`apply` never prints them to the
+# console or into apply.log.
+
+variable "aiven_host" {
+  description = "Aiven MySQL hostname, e.g. mysql-xxxx-wairimu.aivencloud.com."
+  type        = string
+}
+
+variable "aiven_port" {
+  description = "Aiven MySQL port (shown on the service Overview page, not the default 3306)."
+  type        = number
+}
+
+variable "aiven_user" {
+  description = "Aiven MySQL username. Default is avnadmin."
+  type        = string
+  default     = "avnadmin"
+}
+
+variable "aiven_password" {
+  description = "Aiven MySQL password, from the service Overview page."
+  type        = string
+  sensitive   = true
+}
+
+variable "aiven_ca_cert" {
+  description = "Contents of the CA certificate Aiven provides for TLS (paste the whole .pem file as a string). Stored in the secret for when database.js adds TLS support."
+  type        = string
+  sensitive   = true
 }

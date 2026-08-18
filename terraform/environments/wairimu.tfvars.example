@@ -1,19 +1,25 @@
 # Copy this to wairimu.tfvars (gitignored — never commit the real one) and
-# adjust. This mirrors hunter.tfvars.example but adds app_ami_id, which that
-# template didn't have yet — worth adding to hunter.tfvars.example too so
-# nobody else hits the same missing-variable error at `terraform plan`.
+# fill in your own Aiven values from aiven.io -> your MySQL service -> Overview.
 
 project_name   = "rh-wairimu"
 db_name        = "capacity_lab"
-db_username    = "app"
-instance_class = "db.t3.micro"
 secret_name    = "regional-health/wairimu/db"
 instance_type  = "t3.small"
 
-# From CI's `docker tag` step: localstack-ec2/app:ami-<sha12>. Until Minage's
-# CI pipeline exists, you won't have a real one — use a placeholder here so
-# `terraform plan` doesn't error on a missing required variable while you're
-# only testing modules/data. It WILL fail at apply time when modules/service
-# actually tries to launch an instance with a fake AMI — that's expected
-# until CI produces a real tag.
+# From CI's `docker tag` step: localstack-ec2/app:ami-<sha12>. Placeholder
+# below is fine until modules/service and Minage's CI pipeline exist.
 app_ami_id = "localstack-ec2/app:ami-000000000000"
+
+# --- Aiven MySQL (aiven.io -> your service -> Overview page) ---------------
+aiven_host     = "mysql-xxxx-wairimu.aivencloud.com"
+aiven_port     = 12345
+aiven_user     = "avnadmin"
+aiven_password = "REPLACE_ME"
+
+# Paste the whole downloaded ca.pem here, e.g.:
+# aiven_ca_cert = <<-EOT
+# -----BEGIN CERTIFICATE-----
+# ...
+# -----END CERTIFICATE-----
+# EOT
+aiven_ca_cert = "REPLACE_ME"

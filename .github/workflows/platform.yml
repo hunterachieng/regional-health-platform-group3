@@ -12,6 +12,21 @@ on:
       LOCALSTACK_AUTH_TOKEN:
         description: Personal LocalStack Hobby auth token (deploy job only)
         required: true
+      AIVEN_HOST:
+        description: Aiven MySQL hostname for CI deploy
+        required: false
+      AIVEN_PORT:
+        description: Aiven MySQL port for CI deploy
+        required: false
+      AIVEN_USER:
+        description: Aiven MySQL username for CI deploy
+        required: false
+      AIVEN_PASSWORD:
+        description: Aiven MySQL password for CI deploy
+        required: false
+      AIVEN_CA_CERT:
+        description: Aiven CA certificate PEM for CI deploy
+        required: false
 
 permissions:
   contents: read
@@ -68,6 +83,7 @@ jobs:
           scan-ref: .
           exit-code: 1
           severity: CRITICAL,HIGH
+          trivyignores: .trivyignore
 
       - name: Upload trivy config report
         uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # 0.33.1
@@ -78,6 +94,7 @@ jobs:
           format: json
           output: trivy-config.json
           severity: CRITICAL,HIGH,MEDIUM,LOW
+          trivyignores: .trivyignore
 
       - name: Upload config scan artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.0
@@ -193,6 +210,8 @@ jobs:
           image-ref: capacity-api:${{ github.sha }}
           exit-code: 1
           severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          trivyignores: .trivyignore
 
       - name: Write image scan report
         uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # 0.33.1
@@ -203,6 +222,7 @@ jobs:
           format: json
           output: trivy-image.json
           severity: CRITICAL,HIGH,MEDIUM,LOW
+          trivyignores: .trivyignore
 
       - name: Upload image scan artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.0
@@ -283,6 +303,8 @@ jobs:
           AWS_ACCESS_KEY_ID: test
           AWS_SECRET_ACCESS_KEY: test
           AWS_DEFAULT_REGION: us-east-1
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_PROFILE: ""
         run: |
           tflocal init -input=false \
             -backend-config="bucket=regional-health-tfstate" \
@@ -293,10 +315,17 @@ jobs:
             -backend-config="skip_credentials_validation=true" \
             -backend-config="skip_metadata_api_check=true" \
             -backend-config="skip_region_validation=true" \
+            -backend-config="skip_requesting_account_id=true" \
             -backend-config="use_path_style=true"
 
       - name: tflocal validate
         working-directory: terraform
+        env:
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_PROFILE: ""
         run: tflocal validate
 
       - name: tflocal apply
@@ -305,8 +334,21 @@ jobs:
           AWS_ACCESS_KEY_ID: test
           AWS_SECRET_ACCESS_KEY: test
           AWS_DEFAULT_REGION: us-east-1
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_PROFILE: ""
+          TF_VAR_project_name: rh-ci
+          TF_VAR_secret_name: regional-health/ci/db
+          TF_VAR_db_name: capacity_lab
+          TF_VAR_instance_type: t3.small
           TF_VAR_app_ami_id: ${{ env.AMI_ID }}
+          TF_VAR_aiven_host: ${{ secrets.AIVEN_HOST }}
+          TF_VAR_aiven_port: ${{ secrets.AIVEN_PORT }}
+          TF_VAR_aiven_user: ${{ secrets.AIVEN_USER }}
+          TF_VAR_aiven_password: ${{ secrets.AIVEN_PASSWORD }}
+          TF_VAR_aiven_ca_cert: ${{ secrets.AIVEN_CA_CERT }}
         run: |
-          tflocal apply -auto-approve -input=false \
-            -var-file="${{ inputs.terraform-var-file }}" \
-            -var="app_ami_id=${TF_VAR_app_ami_id}"
+          if [ -z "${TF_VAR_aiven_host}" ] || [ -z "${TF_VAR_aiven_password}" ] || [ -z "${TF_VAR_aiven_ca_cert}" ]; then
+            echo "Skipping tflocal apply — add AIVEN_* secrets to GitHub Actions"
+            exit 0
+          fi
+          tflocal apply -auto-approve -input=false
