@@ -17,41 +17,48 @@ variable "project_name" {
   type        = string
 }
 
-# --- passed straight through to modules/data -------------------------------
+# --- passed straight through to modules/data --------------------------------
+# UPDATED: RDS sizing variables (instance_class, allocated_storage,
+# engine_version) are gone — the database is Aiven MySQL now, provisioned
+# outside Terraform on their dashboard, not sized here.
 
 variable "db_name" {
-  description = "Initial database (schema) name."
+  description = "Database (schema) name inside your Aiven MySQL service."
   type        = string
   default     = "capacity_lab"
-}
-
-variable "db_username" {
-  description = "Master username for the MySQL instance."
-  type        = string
-  default     = "app"
-}
-
-variable "instance_class" {
-  description = "RDS instance class."
-  type        = string
-  default     = "db.t3.micro"
-}
-
-variable "allocated_storage" {
-  description = "Allocated RDS storage in GiB."
-  type        = number
-  default     = 20
-}
-
-variable "engine_version" {
-  description = "MySQL engine version."
-  type        = string
-  default     = "8.0"
 }
 
 variable "secret_name" {
   description = "Secrets Manager secret name. Must be unique per person, e.g. regional-health/wairimu/db — two people sharing a name means the second apply overwrites the first person's secret."
   type        = string
+}
+
+variable "aiven_host" {
+  description = "Aiven MySQL hostname, from your Aiven service Overview page."
+  type        = string
+}
+
+variable "aiven_port" {
+  description = "Aiven MySQL port, from your Aiven service Overview page."
+  type        = number
+}
+
+variable "aiven_user" {
+  description = "Aiven MySQL username. Default is avnadmin."
+  type        = string
+  default     = "avnadmin"
+}
+
+variable "aiven_password" {
+  description = "Aiven MySQL password, from your Aiven service Overview page."
+  type        = string
+  sensitive   = true
+}
+
+variable "aiven_ca_cert" {
+  description = "Contents of Aiven's CA certificate .pem file, pasted as a string."
+  type        = string
+  sensitive   = true
 }
 
 # --- passed straight through to modules/service (once it's implemented) ---

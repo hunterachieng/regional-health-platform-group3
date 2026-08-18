@@ -1,19 +1,19 @@
 # =============================================================================
 # modules/data — outputs consumed by the root module and modules/service
 #
-# NEVER output the password. The plaintext credential lives only in the
+# NEVER output the password or the CA cert. Both live only inside the
 # Secrets Manager secret (and, unavoidably, in Terraform state — treat state
 # as a credential store: encrypted bucket, versioned, non-public, gitignored).
 # =============================================================================
 
 output "db_endpoint" {
-  description = "RDS instance hostname (no port). From inside the EC2 container, reach it via localhost.localstack.cloud, not bare localhost."
-  value       = aws_db_instance.mysql.address
+  description = "Aiven MySQL hostname."
+  value       = var.aiven_host
 }
 
 output "db_port" {
-  description = "RDS instance port."
-  value       = aws_db_instance.mysql.port
+  description = "Aiven MySQL port."
+  value       = var.aiven_port
 }
 
 output "secret_arn" {

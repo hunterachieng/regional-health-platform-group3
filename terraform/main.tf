@@ -11,13 +11,14 @@
 module "data" {
   source = "./modules/data"
 
-  project_name      = var.project_name
-  db_name           = var.db_name
-  db_username       = var.db_username
-  instance_class    = var.instance_class
-  allocated_storage = var.allocated_storage
-  engine_version    = var.engine_version
-  secret_name       = var.secret_name
+  project_name   = var.project_name
+  db_name        = var.db_name
+  secret_name    = var.secret_name
+  aiven_host     = var.aiven_host
+  aiven_port     = var.aiven_port
+  aiven_user     = var.aiven_user
+  aiven_password = var.aiven_password
+  aiven_ca_cert  = var.aiven_ca_cert
 }
 
 # -----------------------------------------------------------------------------
