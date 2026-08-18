@@ -25,7 +25,6 @@ load-tests/results/
 .terraform/
 *.tfstate
 *.tfstate.*
-.terraform.lock.hcl
 *.tfvars
 !*.tfvars.example
 crash.log
