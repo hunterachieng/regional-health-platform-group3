@@ -21,8 +21,17 @@ output "secret_arn" {
   value       = module.data.secret_arn
 }
 
-# TODO(blocked on Lwam — see main.tf): uncomment once modules/service has an
-# outputs.tf with instance_id.
-# output "instance_id" {
-#   value = module.service.instance_id
-# }
+output "instance_id" {
+  description = "EC2 instance id for the app tier."
+  value       = module.service.instance_id
+}
+
+output "app_url" {
+  description = "Base URL for smoke checks — append /healthz, /readyz, or /metrics. `make verify` (C8) reads this."
+  value       = module.service.app_url
+}
+
+output "security_group_id" {
+  description = "App security group id. Worth capturing in evidence: on LocalStack an SG rule change only takes effect when the instance is recreated."
+  value       = module.service.security_group_id
+}
