@@ -29,7 +29,7 @@ One sentence per gate — knowing the limits of a green check is the skill.
 |------|-------------------|
 | **gitleaks** | Runtime-only secrets (Secrets Manager values, CI-injected env vars, or credentials that stay in gitignored `*.tfvars` and never enter git history). |
 | **trivy config** | Terraform **`dynamic` blocks** — trivy evaluates static HCL only, so a conditional `root_block_device { encrypted = true }` still reported **AVD-AWS-0131** until documented in `.trivyignore` (see FIDELITY.md section 6). Also does not inspect live cloud state, only files on disk. |
-| **zizmor** | Application bugs, container CVEs (that is **trivy image**), or committed secrets (that is **gitleaks**) — it only audits GitHub Actions workflow YAML. |
+| **zizmor** | Application bugs, container CVEs (that is **trivy image**), or committed secrets (that is **gitleaks**) — it only audits GitHub Actions workflow YAML. With `advanced-security: false` (no GitHub Advanced Security on this repo), findings appear in the job log/annotations only, not the Security tab. |
 | **trivy image** _(pipeline, not one of the three red-PR gates)_ | IaC misconfigurations, unpinned Actions, or secrets in git — it only scans the built OCI image layers. |
 
 ---

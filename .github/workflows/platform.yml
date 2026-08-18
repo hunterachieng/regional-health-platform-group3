@@ -127,6 +127,10 @@ jobs:
         uses: zizmorcore/zizmor-action@2ae1ce9c6b7248fdfc5a4f47f3527240521f79b9 # v0.4.0
         with:
           persona: pedantic
+          # Student/personal repos do not have GitHub Advanced Security — SARIF
+          # upload fails with "Resource not accessible by integration" otherwise.
+          advanced-security: false
+          annotations: true
 
       - name: Save zizmor output
         if: always()
