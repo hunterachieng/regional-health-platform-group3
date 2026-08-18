@@ -1,0 +1,65 @@
+# Prometheus alert rules — one per OPS incident (C6).
+# Verify: http://localhost:9091/alerts  (Pending → Firing while fault is active)
+groups:
+  - name: capacity-lab
+    interval: 15s
+    rules:
+      - alert: OPS2201SearchP95High
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_seconds_bucket{route="/api/patients/search"}[1m])) by (le)
+          ) > 0.3
+        for: 30s
+        labels:
+          incident: OPS-2201
+          severity: warning
+        annotations:
+          summary: Patient search p95 latency elevated
+          description: Search route p95 above 300ms — shift-change search storm or missing index.
+
+      - alert: OPS2202RecentP95High
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_seconds_bucket{route="/api/patients/recent"}[1m])) by (le)
+          ) > 0.5
+        for: 30s
+        labels:
+          incident: OPS-2202
+          severity: critical
+        annotations:
+          summary: Recent-patients p95 latency elevated under load
+          description: Pool saturation or connection queueing while DB may look idle.
+
+      - alert: OPS2203LockWaitTimeouts
+        expr: |
+          sum(rate(db_errors_total{code="ER_LOCK_WAIT_TIMEOUT"}[1m])) > 0
+        for: 15s
+        labels:
+          incident: OPS-2203
+          severity: critical
+        annotations:
+          summary: InnoDB lock wait timeouts on admissions
+          description: Concurrent admits to the same hospital are blocking.
+
+      - alert: OPS2204ApiDown
+        expr: up{job="capacity-api"} == 0
+        for: 15s
+        labels:
+          incident: OPS-2204
+          severity: critical
+        annotations:
+          summary: capacity-api target is down
+          description: Process crashed or OOM-killed — check export load and memory panel.
+
+      - alert: OPS2204MemoryHigh
+        expr: |
+          process_resident_memory_bytes{job="capacity-api"} > 150000000
+        for: 30s
+        labels:
+          incident: OPS-2204
+          severity: warning
+        annotations:
+          summary: API RSS approaching container memory limit
+          description: Unbounded export may OOM-kill the process (160MiB cgroup limit locally).
