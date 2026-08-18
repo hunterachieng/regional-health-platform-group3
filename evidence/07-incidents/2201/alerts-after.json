@@ -1,0 +1,1 @@
+{"status":"success","data":{"alerts":[{"labels":{"alertname":"OPS2201SearchP95High","incident":"OPS-2201"},"annotations":{"summary":"Search p95 latency elevated"},"state":"pending","activeAt":"2026-08-18T21:29:42.184824336Z","value":"4.5917311171210523e-01"}]}}
