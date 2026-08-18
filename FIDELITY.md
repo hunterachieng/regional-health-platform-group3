@@ -131,9 +131,10 @@ custom docker-tagged AMIs, but `RunInstances` does find them.
 **How we found it:** `TF_LOG=DEBUG terraform apply` showed the DescribeImages
 400 response. Confirmed RunInstances succeeded with the same AMI via AWS CLI.
 
-**Workaround:** Set `skip_root_block_device = true` (default in modules/service)
-for LocalStack local apply. On real AWS, set it to `false` so volume size is
-declared explicitly.
+**Workaround:** Set `skip_root_block_device = true` in your `<name>.tfvars` for
+LocalStack local apply (see `terraform/environments/*.tfvars.example`). The
+module default is `false` so CI `trivy config` sees an encrypted root volume;
+LocalStack deploys must opt out explicitly. On real AWS, leave it `false`.
 
 ---
 

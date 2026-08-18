@@ -6,6 +6,9 @@ db_name        = "capacity_lab"
 secret_name    = "regional-health/wairimu/db"
 instance_type  = "t3.small"
 
+# LocalStack Hobby: DescribeImages fails for docker-tagged AMIs when this is false.
+skip_root_block_device = true
+
 # From CI's `docker tag` step: localstack-ec2/app:ami-<sha12>. Placeholder
 # below is fine until modules/service and Minage's CI pipeline exist.
 app_ami_id = "localstack-ec2/app:ami-000000000000"
