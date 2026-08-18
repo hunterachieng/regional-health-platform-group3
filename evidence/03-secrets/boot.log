@@ -1,0 +1,3 @@
+DB credentials loaded from Secrets Manager arn=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/hunter/db-mjunnZ version=terraform-kdxfBLbxQyyJvTLydwSFZpwrwG tls_ca_present=true
+MySQL pool ready host=rh-hunter-rh-hunter.g.aivencloud.com port=26909 tls=true
+capacity-api listening on :3005 (metrics at /metrics, secret arn=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/hunter/db-mjunnZ)
