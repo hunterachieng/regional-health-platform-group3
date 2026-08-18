@@ -32,6 +32,7 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+!evidence/**/*.log
 
 # Secrets / scans (regenerate into evidence/ intentionally)
 # Keep committed evidence small; large binaries stay local
