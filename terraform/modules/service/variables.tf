@@ -80,9 +80,9 @@ variable "root_volume_size" {
 }
 
 variable "skip_root_block_device" {
-  description = "Omit root_block_device on aws_instance. Required for LocalStack + custom Docker AMIs because Terraform's DescribeImages pre-check fails even though RunInstances succeeds."
+  description = "Omit root_block_device on aws_instance. Set true in <name>.tfvars for LocalStack + custom Docker AMIs — Terraform's DescribeImages pre-check fails even though RunInstances succeeds. Default false so trivy config sees encrypted volumes in CI."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "health_check_path" {

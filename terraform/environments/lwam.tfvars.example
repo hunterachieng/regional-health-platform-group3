@@ -17,5 +17,8 @@ instance_class = "db.t3.micro"
 secret_name    = "regional-health/lwam/db"
 instance_type  = "t3.small"
 
+# LocalStack Hobby: DescribeImages fails for docker-tagged AMIs when this is false.
+skip_root_block_device = true
+
 # Replace with the tag you actually built:
 app_ami_id = "ami-000000000000"
