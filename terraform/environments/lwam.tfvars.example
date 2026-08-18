@@ -1,0 +1,24 @@
+# Copy to lwam.tfvars (gitignored) and adjust.
+#
+# app_ami_id has no default on purpose — it changes on every image rebuild.
+# Get the current value from the CI build job, or build and tag locally:
+#
+#   docker build -t localstack-ec2/app:ami-$(git rev-parse --short=12 HEAD) ./api
+#
+# The tag must be ami- followed by exactly 12 lowercase hex characters, or
+# instance creation fails with InvalidAMIID.NotFound (failure mode #2 in
+# ASSIGNMENT.md). modules/service validates the format so you find out at plan
+# time rather than after a two-minute apply.
+
+project_name   = "rh-lwam"
+db_name        = "capacity_lab"
+db_username    = "app"
+instance_class = "db.t3.micro"
+secret_name    = "regional-health/lwam/db"
+instance_type  = "t3.small"
+
+# LocalStack Hobby: DescribeImages fails for docker-tagged AMIs when this is false.
+skip_root_block_device = true
+
+# Replace with the tag you actually built:
+app_ami_id = "ami-000000000000"

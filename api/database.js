@@ -26,6 +26,28 @@ const POOL_OPTIONS = {
 let pool;
 let mysqlReady = false;
 
+/**
+ * TLS options for the pool, or {} when there is no CA certificate.
+ *
+ * Aiven is TLS-only, so the cloud path must present its CA or the handshake
+ * fails. Local docker-compose MySQL speaks plaintext, so the absence of a CA
+ * has to stay valid — hence a spread of {} rather than `ssl: undefined`, which
+ * mysql2 would still treat as a TLS attempt.
+ *
+ * rejectUnauthorized is left at its default (true). Setting it to false would
+ * make the handshake succeed against any certificate, which is encryption
+ * without authentication — it defeats the point of shipping the CA at all.
+ */
+function buildSslOptions(caCert) {
+  if (!caCert) return {};
+  return {
+    ssl: {
+      ca: caCert,
+      minVersion: 'TLSv1.2',
+    },
+  };
+}
+
 async function initDatabase(credentials) {
   if (pool) {
     await pool.end();
@@ -40,12 +62,21 @@ async function initDatabase(credentials) {
     user: credentials.user,
     password: credentials.password,
     database: credentials.database,
+    ...buildSslOptions(credentials.caCert),
   });
 
   const conn = await pool.getConnection();
   try {
     await conn.ping();
     mysqlReady = true;
+    // Logged after a successful ping, so this line is proof the TLS handshake
+    // actually completed — not just that a certificate was supplied. This is
+    // the line evidence/03-secrets/boot.log should show.
+    // eslint-disable-next-line no-console
+    console.log(
+      `MySQL pool ready host=${credentials.host} port=${credentials.port} ` +
+        `tls=${Boolean(credentials.caCert)}`
+    );
   } finally {
     conn.release();
   }

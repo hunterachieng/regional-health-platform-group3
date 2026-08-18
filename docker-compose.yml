@@ -43,6 +43,8 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
+      args:
+        INSTALL_MYSQL_CLIENT: "true"
     container_name: rh-g3-capacity-api
     environment:
       PORT: 3000
@@ -91,6 +93,7 @@ services:
       - "9091:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
     depends_on:
       - capacity-api
     networks:

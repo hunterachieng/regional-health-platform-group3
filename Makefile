@@ -31,6 +31,13 @@ export AWS_SECRET_ACCESS_KEY     ?= test
 export AWS_DEFAULT_REGION        ?= $(REGION)
 export AWS_EC2_METADATA_DISABLED ?= true
 
+# LocalStack's fake credentials — Terraform's S3 backend still requires *some*
+# creds in the environment even with skip_credentials_validation=true.
+export AWS_ACCESS_KEY_ID         ?= test
+export AWS_SECRET_ACCESS_KEY     ?= test
+export AWS_DEFAULT_REGION        ?= $(REGION)
+export AWS_EC2_METADATA_DISABLED ?= true
+
 .PHONY: up verify destroy bootstrap _check-name _tf-init
 
 # -----------------------------------------------------------------------------

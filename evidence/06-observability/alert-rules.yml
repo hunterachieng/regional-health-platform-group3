@@ -1,0 +1,43 @@
+groups:
+  - name: capacity-lab
+    interval: 15s
+    rules:
+      - alert: OPS2201SearchP95High
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route="/api/patients/search"}[1m])) by (le)) > 0.3
+        for: 30s
+        labels:
+          incident: OPS-2201
+        annotations:
+          summary: Search p95 latency elevated
+
+      - alert: OPS2202RecentP95High
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route="/api/patients/recent"}[1m])) by (le)) > 0.5
+        for: 30s
+        labels:
+          incident: OPS-2202
+        annotations:
+          summary: Recent route p95 elevated
+
+      - alert: OPS2203LockWaitTimeouts
+        expr: sum(rate(db_errors_total{code="ER_LOCK_WAIT_TIMEOUT"}[1m])) > 0
+        for: 15s
+        labels:
+          incident: OPS-2203
+        annotations:
+          summary: Lock wait timeouts
+
+      - alert: OPS2204ApiDown
+        expr: up{job="capacity-api"} == 0
+        for: 15s
+        labels:
+          incident: OPS-2204
+        annotations:
+          summary: API target down
+
+      - alert: OPS2204MemoryHigh
+        expr: process_resident_memory_bytes{job="capacity-api"} > 150000000
+        for: 30s
+        labels:
+          incident: OPS-2204
+        annotations:
+          summary: Memory near limit

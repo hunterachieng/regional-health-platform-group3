@@ -22,7 +22,33 @@ function credentialsFromEnv() {
     user: process.env.MYSQL_USER || 'root',
     password: process.env.MYSQL_PASSWORD || 'labpassword',
     database: process.env.MYSQL_DATABASE || 'capacity_lab',
+    // Local docker-compose MySQL speaks plaintext, so no CA by default. Set
+    // MYSQL_CA_CERT if you point local dev at a TLS-only server.
+    caCert: normalizeCaCert(process.env.MYSQL_CA_CERT),
   };
+}
+
+/**
+ * Return a usable PEM string, or undefined if there is no cert.
+ *
+ * A PEM is multi-line. On the way to the app it passes through a GitHub Actions
+ * secret, a TF_VAR, jsonencode(), and Secrets Manager — and newlines do not
+ * always survive that trip intact. So accept either form:
+ *   - a real PEM (contains "BEGIN CERTIFICATE")
+ *   - the same PEM base64-encoded, which is newline-safe end to end
+ * Getting this wrong surfaces as an opaque TLS handshake failure rather than a
+ * clear error, which is why it is worth handling explicitly.
+ */
+function normalizeCaCert(raw) {
+  if (!raw || raw.trim() === '') return undefined;
+  if (raw.includes('BEGIN CERTIFICATE')) return raw;
+
+  const decoded = Buffer.from(raw, 'base64').toString('utf8');
+  if (decoded.includes('BEGIN CERTIFICATE')) return decoded;
+
+  throw new Error(
+    'CA certificate is neither a PEM nor base64-encoded PEM — check aiven_ca_cert'
+  );
 }
 
 async function loadDbCredentials() {
@@ -43,10 +69,15 @@ async function loadDbCredentials() {
     versionId: response.VersionId || 'unknown',
   };
 
-  // Log ARN + version only — never the password.
+  const caCert = normalizeCaCert(envelope.ca_cert);
+
+  // Log ARN + version only — never the password. Whether TLS material arrived
+  // is logged as a boolean so boot.log proves the connection is encrypted
+  // without printing the certificate.
   // eslint-disable-next-line no-console
   console.log(
-    `DB credentials loaded from Secrets Manager arn=${secretSource.arn} version=${secretSource.versionId}`
+    `DB credentials loaded from Secrets Manager arn=${secretSource.arn} ` +
+      `version=${secretSource.versionId} tls_ca_present=${Boolean(caCert)}`
   );
 
   return {
@@ -55,6 +86,9 @@ async function loadDbCredentials() {
     user: envelope.username,
     password: envelope.password,
     database: envelope.dbname,
+    // Aiven refuses plaintext connections, so this is required in the cloud
+    // path. modules/data puts it in the envelope under ca_cert.
+    caCert,
   };
 }
 
