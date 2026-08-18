@@ -8,10 +8,14 @@ RUN apt-get update \
 
 WORKDIR /usr/src/app
 
-COPY package.json ./
+# Image hardening: run the app as non-root (node user ships with the base image).
+RUN chown node:node /usr/src/app
+USER node
+
+COPY --chown=node:node package.json package-lock.json ./
 RUN npm install --omit=dev
 
-COPY . .
+COPY --chown=node:node . .
 
 # The seed script lives in ../data-seed and is bind-mounted at runtime by
 # docker-compose to /usr/local/bin/seed.sh (it is outside this build context,

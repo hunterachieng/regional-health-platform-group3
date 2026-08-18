@@ -92,6 +92,51 @@ dashboard first before assuming something's broken.
 
 ---
 
+## 5. ELBv2 isn't on the Hobby plan either
+
+**What happened:** `terraform apply` created Secrets Manager and the security
+group, then failed when it tried to create or read the ALB and target group:
+```
+Sorry, the elbv2 service is not included within your LocalStack license
+```
+
+**Why:** Same pattern as RDS — the health endpoint lists `elbv2` as
+"available" but the Hobby license blocks actual API calls. The assignment
+still requires `aws_lb` Terraform for IaC grading and `trivy config` scans;
+nginx on the EC2 instance carries real traffic instead. We gate ALB creation
+behind `enable_alb` (default `false`) so `make up` works on Hobby while the
+ALB blocks stay in the module for scanning.
+
+**How we found it:** Watched `make up NAME=hunter` fail on
+`DescribeLoadBalancers` with HTTP 501 after the data tier applied cleanly.
+
+**On real AWS:** Enable `enable_alb = true` and verify listener health checks
+actually pull unhealthy targets — LocalStack never documented that behaviour
+faithfully anyway.
+
+## 6. DescribeImages fails for custom Docker AMIs (Terraform only)
+
+**What happened:** `terraform apply` failed on `aws_instance` with:
+```
+collecting instance settings: couldn't find resource
+```
+Debug logging showed `DescribeImages` returning `InvalidAMIID.NotFound` for
+`ami-1ec9f2444d2c`, even though the same AMI worked via `aws ec2 run-instances`
+and the Docker image `localstack-ec2/app:ami-1ec9f2444d2c` existed on the host.
+
+**Why:** The Terraform AWS provider calls `DescribeImages` before create when
+`root_block_device` is set. LocalStack's DescribeImages does not register
+custom docker-tagged AMIs, but `RunInstances` does find them.
+
+**How we found it:** `TF_LOG=DEBUG terraform apply` showed the DescribeImages
+400 response. Confirmed RunInstances succeeded with the same AMI via AWS CLI.
+
+**Workaround:** Set `skip_root_block_device = true` (default in modules/service)
+for LocalStack local apply. On real AWS, set it to `false` so volume size is
+declared explicitly.
+
+---
+
 ## A few more things worth knowing (not emulator bugs, just real gotchas)
 
 - **A cancelled command can leave a lock stuck.** If you hit Ctrl+C on
