@@ -22,20 +22,23 @@ module "data" {
 }
 
 # -----------------------------------------------------------------------------
-# TODO(blocked on Lwam — modules/service is still a TODO stub, PR #2 not
-# merged yet): uncomment this block once modules/service/variables.tf and
-# outputs.tf exist. Until then this would fail `terraform validate` with
-# "no variable named X" — that's not your bug, it's just sequencing. The
-# inputs below are exactly the agreed interface from TEAM_PLAN.md, not a
-# guess, so this should be a straight uncomment with no changes needed once
-# his module catches up.
-# -----------------------------------------------------------------------------
-# module "service" {
-#   source = "./modules/service"
+# Service tier. The five inputs below are the agreed interface from
+# TEAM_PLAN.md, unchanged.
 #
-#   secret_arn    = module.data.secret_arn
-#   db_endpoint   = module.data.db_endpoint
-#   db_port       = module.data.db_port
-#   app_ami_id    = var.app_ami_id
-#   instance_type = var.instance_type
-# }
+# One addition to the originally-sketched block: project_name. Every resource in
+# modules/service is named from it (SG, instance, ALB, target group) so the five
+# of us can apply identical code without colliding on names — the same reason
+# modules/data already takes it. aws_region is passed too so the app's Secrets
+# Manager client and the provider cannot drift apart.
+# -----------------------------------------------------------------------------
+module "service" {
+  source = "./modules/service"
+
+  project_name  = var.project_name
+  secret_arn    = module.data.secret_arn
+  db_endpoint   = module.data.db_endpoint
+  db_port       = module.data.db_port
+  app_ami_id    = var.app_ami_id
+  instance_type = var.instance_type
+  aws_region    = var.aws_region
+}
