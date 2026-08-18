@@ -132,9 +132,11 @@ custom docker-tagged AMIs, but `RunInstances` does find them.
 400 response. Confirmed RunInstances succeeded with the same AMI via AWS CLI.
 
 **Workaround:** Set `skip_root_block_device = true` in your `<name>.tfvars` for
-LocalStack local apply (see `terraform/environments/*.tfvars.example`). The
-module default is `false` so CI `trivy config` sees an encrypted root volume;
-LocalStack deploys must opt out explicitly. On real AWS, leave it `false`.
+LocalStack local apply (see `terraform/environments/*.tfvars.example`). When
+false, the module declares `root_block_device { encrypted = true }`. Trivy
+config cannot evaluate Terraform `dynamic` blocks, so `AVD-AWS-0131` is in
+`.trivyignore` with this note — the gate still catches a statically missing
+encryption block on real AWS paths.
 
 ---
 

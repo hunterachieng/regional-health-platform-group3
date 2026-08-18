@@ -87,7 +87,8 @@ resource "aws_security_group" "app" {
 # Application instance.
 #
 # user_data carries the secret ARN, not the secret. `evidence/03-secrets/
-# user-data.txt` is graded on exactly that: an ARN present, a password absent.
+# user_data.txt` is graded on exactly that: an ARN present, a password absent.
+# trivy:ignore:AVD-AWS-0131 -- dynamic root_block_device omitted for LocalStack (FIDELITY.md §6); encrypted when skip_root_block_device=false
 # -----------------------------------------------------------------------------
 resource "aws_instance" "app" {
   ami                    = var.app_ami_id

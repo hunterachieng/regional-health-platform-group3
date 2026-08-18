@@ -6,3 +6,9 @@ AVD-AWS-0054
 
 # EC2 egress must reach Aiven MySQL (external SaaS) and apt for nginx at boot.
 AVD-AWS-0104
+
+# root_block_device is a dynamic block omitted when skip_root_block_device=true
+# (LocalStack DescribeImages bug — FIDELITY.md §6). Trivy does not evaluate
+# dynamic blocks, so it always reports unencrypted even when encrypted=true is
+# declared for the non-skipped path.
+AVD-AWS-0131
