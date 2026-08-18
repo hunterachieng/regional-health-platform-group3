@@ -1,0 +1,1 @@
+{"status":"success","data":{"alerts":[{"labels":{"alertname":"OPS2204ApiDown","incident":"OPS-2204","instance":"capacity-api:3000","job":"capacity-api"},"annotations":{"summary":"API target down"},"state":"firing","activeAt":"2026-08-18T21:16:12.184824336Z","value":"0e+00"}]}}

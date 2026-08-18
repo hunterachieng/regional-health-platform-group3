@@ -1,0 +1,4 @@
+# Manager ARN. The password is fetched at boot by api/secrets.js calling
+# DB_SECRET_ARN is the important line. If it is missing, api/secrets.js falls
+# password, this variable failed to reach the process.
+DB_SECRET_ARN=${secret_arn}
