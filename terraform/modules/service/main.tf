@@ -87,7 +87,8 @@ resource "aws_security_group" "app" {
 # Application instance.
 #
 # user_data carries the secret ARN, not the secret. `evidence/03-secrets/
-# user-data.txt` is graded on exactly that: an ARN present, a password absent.
+# user_data.txt` is graded on exactly that: an ARN present, a password absent.
+# trivy:ignore:AVD-AWS-0131 -- dynamic root_block_device omitted for LocalStack (FIDELITY.md §6); encrypted when skip_root_block_device=false
 # -----------------------------------------------------------------------------
 resource "aws_instance" "app" {
   ami                    = var.app_ami_id
@@ -105,10 +106,17 @@ resource "aws_instance" "app" {
     aws_endpoint_url = var.aws_endpoint_url
   })
 
-  # LocalStack requires an explicit volume_size here or instance creation fails.
-  root_block_device {
-    volume_size = var.root_volume_size
-    encrypted   = true
+  # Omit on LocalStack when using a custom Docker AMI: the Terraform AWS provider
+  # calls DescribeImages before create when root_block_device is set, and
+  # LocalStack returns InvalidAMIID.NotFound for docker-tagged AMIs even though
+  # RunInstances works (see FIDELITY.md). Set skip_root_block_device = true in
+  # tfvars for local apply.
+  dynamic "root_block_device" {
+    for_each = var.skip_root_block_device ? [] : [1]
+    content {
+      volume_size = var.root_volume_size
+      encrypted   = true
+    }
   }
 
   metadata_options {
@@ -136,6 +144,8 @@ resource "aws_instance" "app" {
 # stop every subsequent plan showing phantom drift.
 # -----------------------------------------------------------------------------
 resource "aws_lb" "app" {
+  count = var.enable_alb ? 1 : 0
+
   name                       = "${var.project_name}-alb"
   internal                   = true # lab: ALB is IaC-only; nginx on the instance serves traffic
   load_balancer_type         = "application"
@@ -151,6 +161,8 @@ resource "aws_lb" "app" {
 }
 
 resource "aws_lb_target_group" "app" {
+  count = var.enable_alb ? 1 : 0
+
   name        = "${var.project_name}-tg"
   port        = 80
   protocol    = "HTTP"
@@ -174,19 +186,23 @@ resource "aws_lb_target_group" "app" {
 }
 
 resource "aws_lb_target_group_attachment" "app" {
-  target_group_arn = aws_lb_target_group.app.arn
+  count = var.enable_alb ? 1 : 0
+
+  target_group_arn = aws_lb_target_group.app[0].arn
   target_id        = aws_instance.app.private_ip
   port             = 80
 }
 
 resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.app.arn
+  count = var.enable_alb ? 1 : 0
+
+  load_balancer_arn = aws_lb.app[0].arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.app.arn
+    target_group_arn = aws_lb_target_group.app[0].arn
   }
 
   lifecycle {

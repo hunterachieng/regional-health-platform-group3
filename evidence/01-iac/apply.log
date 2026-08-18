@@ -7,10 +7,32 @@
 [0m[1mmodule.service.data.aws_subnets.default: Read complete after 0s [id=us-east-1][0m
 [0m[1mmodule.service.aws_instance.app: Refreshing state... [id=i-c50e373b4fc6bd3a3][0m
 
-[0m[1m[32mNo changes.[0m[1m Your infrastructure matches the configuration.[0m
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [33m~[0m update in-place[0m
 
-[0mTerraform has compared your real infrastructure against your configuration
-and found no differences, so no changes are needed.
+Terraform will perform the following actions:
+
+[1m  # module.service.aws_instance.app[0m will be updated in-place
+[0m  [33m~[0m[0m resource "aws_instance" "app" {
+        id                                   = "i-c50e373b4fc6bd3a3"
+        tags                                 = {
+            "Name" = "rh-hunter-app"
+        }
+        [90m# (41 unchanged attributes hidden)[0m[0m
+
+      [33m~[0m[0m metadata_options {
+          [33m~[0m[0m http_tokens                 = "optional" [33m->[0m[0m "required"
+            [90m# (4 unchanged attributes hidden)[0m[0m
+        }
+
+        [90m# (3 unchanged blocks hidden)[0m[0m
+    }
+
+[1mPlan:[0m 0 to add, 1 to change, 0 to destroy.
+[0m[0m[1mmodule.service.aws_instance.app: Modifying... [id=i-c50e373b4fc6bd3a3][0m[0m
+[0m[1mmodule.service.aws_instance.app: Still modifying... [id=i-c50e373b4fc6bd3a3, 10s elapsed][0m[0m
+[0m[1mmodule.service.aws_instance.app: Modifications complete after 10s [id=i-c50e373b4fc6bd3a3][0m
 [33m╷[0m[0m
 [33m│[0m [0m[1m[33mWarning: [0m[0m[1mValue for undeclared variable[0m
 [33m│[0m [0m
@@ -22,3 +44,14 @@ and found no differences, so no changes are needed.
 [33m│[0m [0mcertain "global" settings to all configurations in your organization. To
 [33m│[0m [0mreduce the verbosity of these warnings, use the -compact-warnings option.
 [33m╵[0m[0m
+[0m[1m[32m
+Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
+[0m[0m[1m[32m
+Outputs:
+
+[0mapp_url = "http://172.31.0.4"
+db_endpoint = "rh-hunter-rh-hunter.g.aivencloud.com"
+db_port = 26909
+instance_id = "i-c50e373b4fc6bd3a3"
+secret_arn = "arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/hunter/db-mjunnZ"
+security_group_id = "sg-62e6a9c1f67c860c8"

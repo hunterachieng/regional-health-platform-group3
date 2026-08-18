@@ -79,8 +79,20 @@ variable "root_volume_size" {
   default     = 20
 }
 
+variable "skip_root_block_device" {
+  description = "Omit root_block_device on aws_instance. Set true in <name>.tfvars for LocalStack + custom Docker AMIs — Terraform's DescribeImages pre-check fails even though RunInstances succeeds. Default false so trivy config sees encrypted volumes in CI."
+  type        = bool
+  default     = false
+}
+
 variable "health_check_path" {
   description = "Path the load balancer target group probes. /readyz (not /healthz) is deliberate: readiness means the DB is reachable and the secret resolved, so a booted-but-not-ready instance is pulled out of rotation."
   type        = string
   default     = "/readyz"
+}
+
+variable "enable_alb" {
+  description = "Create ELBv2 resources. Keep false on LocalStack Hobby — elbv2 is not licensed, but the aws_lb blocks remain in this module for IaC grading and trivy config scans. nginx on the instance carries real traffic either way."
+  type        = bool
+  default     = false
 }

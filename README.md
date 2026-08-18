@@ -5,13 +5,23 @@ Assignment 2 group platform repo: Terraform on LocalStack, RDS MySQL, Secrets Ma
 **Team:** Hunter, Joyce, Lwam, Minage, Wairimu  
 **Repo:** `git@github.com:hunterachieng/regional-health-platform-group3.git`
 
-## Repos
+## Repos — A1 vs A2
 
-| Repo | Purpose |
-|------|---------|
-| **This repo** | Shared modules, CI, conventions — group graded |
-| [db-capacity-engineering-lab](https://github.com/hunterachieng/db-capacity-engineering-lab) | Assignment 1 individual work (journal, SCARS) |
-| Personal repo / tfvars | Individual rehost evidence (if separate) |
+| Repo | Assignment | What's there |
+|------|------------|--------------|
+| [db-capacity-engineering-lab](https://github.com/hunterachieng/db-capacity-engineering-lab) | **A1 (individual)** | Incident investigation, fixes, `LAB_JOURNAL.md`, `SCARS.md` |
+| **This repo** | **A2 (group + individual rehost)** | Terraform modules, CI, secrets/health wiring, per-person deploy + `evidence/` |
+
+A1 taught how the service breaks; A2 rehosts it with guardrails. The same app and k6 scripts live here — you do **not** run A2 from the A1 repo.
+
+### Individual submission links (Hunter)
+
+| | Link |
+|---|------|
+| **A1** — fixes & investigation | https://github.com/hunterachieng/db-capacity-engineering-lab |
+| **A2** — deploy & evidence | https://github.com/hunterachieng/regional-health-platform-group3 (branch `hunter/fix-runs`) |
+| **Individual deploy** | `make up NAME=hunter` → evidence under `evidence/` |
+| **Aiven DB seed** | `./data-seed/migrate-aiven.sh hunter` |
 
 ## Prerequisites
 
@@ -43,24 +53,31 @@ curl http://localhost:3010/readyz
 
 Host ports differ from the A1 repo so **both stacks can run on one machine** (`rh-g3-*` container names).
 
-## Cloud path (in progress)
+## Cloud path (LocalStack + Aiven)
 
 ```bash
-make up       # stand stack from zero — Wairimu
-make verify   # grader check — must pass before submit
+export LOCALSTACK_AUTH_TOKEN='ls-...'   # personal Hobby token
+docker run -d --name localstack-main --privileged \
+  -e LOCALSTACK_AUTH_TOKEN -e EC2_VM_MANAGER=docker \
+  -e SERVICES=ec2,secretsmanager,s3,dynamodb \
+  -v /var/run/docker.sock:/var/run/docker.sock -p 4566:4566 \
+  localstack/localstack:latest
+
+make up NAME=hunter
+make verify NAME=hunter
 ```
 
-Not implemented yet. See `TEAM_PLAN.md` for module ownership.
+See [FIDELITY.md](./FIDELITY.md) for LocalStack caveats (RDS/ALB Hobby limits → Aiven MySQL; EC2 VM fidelity on Codespaces).
 
 ## Implemented so far
 
 - [x] `api/secrets.js` — Secrets Manager at boot (+ `MYSQL_*` fallback for local)
 - [x] `/healthz`, `/readyz`, `/debug/secret-source`
-- [x] Docker compose with non-conflicting names/ports
-- [ ] `terraform/modules/data` (Joyce)
-- [ ] `terraform/modules/service` (Lwam)
-- [ ] CI gates (Minage)
-- [ ] `Makefile` / `make verify` (Wairimu)
+- [x] Docker compose + Prometheus alert rules (`monitoring/alert-rules.yml`)
+- [x] `terraform/modules/data` — Secrets Manager + Aiven credentials
+- [x] `terraform/modules/service` — EC2 + nginx IaC
+- [x] `Makefile` / bootstrap / `make up`
+- [ ] CI gates (Minage) — in progress
 
 ## Docs
 

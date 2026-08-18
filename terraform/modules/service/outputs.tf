@@ -22,10 +22,10 @@ output "security_group_id" {
 
 output "alb_dns_name" {
   description = "ALB DNS name. Declared as IaC; on LocalStack nginx on the instance is what actually serves traffic."
-  value       = aws_lb.app.dns_name
+  value       = var.enable_alb ? aws_lb.app[0].dns_name : null
 }
 
 output "app_url" {
-  description = "Base URL for smoke checks: append /healthz, /readyz, or /metrics."
-  value       = "http://${aws_lb.app.dns_name}"
+  description = "Base URL for smoke checks: append /healthz, /readyz, or /metrics. Falls back to the instance IP when ALB is disabled (LocalStack Hobby)."
+  value       = var.enable_alb ? "http://${aws_lb.app[0].dns_name}" : "http://${aws_instance.app.private_ip}"
 }

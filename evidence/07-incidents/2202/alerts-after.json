@@ -1,0 +1,1 @@
+{"status":"success","data":{"alerts":[{"labels":{"alertname":"OPS2202RecentP95High","incident":"OPS-2202"},"annotations":{"summary":"Recent route p95 elevated"},"state":"firing","activeAt":"2026-08-18T21:31:57.184824336Z","value":"2.3943254136614343e+00"}]}}
