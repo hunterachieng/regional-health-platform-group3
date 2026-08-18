@@ -4,10 +4,21 @@
 [0m[1mmodule.service.data.aws_vpc.default: Read complete after 0s [id=vpc-5ddd61a62b6a88caf][0m
 [0m[1mmodule.service.data.aws_subnets.default: Reading...[0m[0m
 [0m[1mmodule.service.aws_security_group.app: Refreshing state... [id=sg-62e6a9c1f67c860c8][0m
-[0m[1mmodule.service.data.aws_subnets.default: Read complete after 1s [id=us-east-1][0m
+[0m[1mmodule.service.data.aws_subnets.default: Read complete after 0s [id=us-east-1][0m
 [0m[1mmodule.service.aws_instance.app: Refreshing state... [id=i-c50e373b4fc6bd3a3][0m
 
 [0m[1m[32mNo changes.[0m[1m Your infrastructure matches the configuration.[0m
 
 [0mTerraform has compared your real infrastructure against your configuration
 and found no differences, so no changes are needed.
+[33m╷[0m[0m
+[33m│[0m [0m[1m[33mWarning: [0m[0m[1mValue for undeclared variable[0m
+[33m│[0m [0m
+[33m│[0m [0m[0mThe root module does not declare a variable named "skip_root_block_device"
+[33m│[0m [0mbut a value was found in file "hunter.tfvars". If you meant to use this
+[33m│[0m [0mvalue, add a "variable" block to the configuration.
+[33m│[0m [0m
+[33m│[0m [0mTo silence these warnings, use TF_VAR_... environment variables to provide
+[33m│[0m [0mcertain "global" settings to all configurations in your organization. To
+[33m│[0m [0mreduce the verbosity of these warnings, use the -compact-warnings option.
+[33m╵[0m[0m
