@@ -70,6 +70,6 @@ variable "instance_type" {
 }
 
 variable "app_ami_id" {
-  description = "AMI tag CI produced, form localstack-ec2/app:ami-<sha12>. No default on purpose — you must supply this deliberately, it changes on every image rebuild."
+  description = "AMI id CI produces, form ami-<sha12> (12 lowercase hex chars). Not the Docker tag — CI strips the localstack-ec2/app: prefix before setting TF_VAR_app_ami_id. No default on purpose — you must supply this deliberately, it changes on every image rebuild."
   type        = string
 }
