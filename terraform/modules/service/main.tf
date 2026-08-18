@@ -105,7 +105,6 @@ resource "aws_instance" "app" {
     aws_endpoint_url = var.aws_endpoint_url
   })
 
-  # LocalStack requires an explicit volume_size here or instance creation fails.
   # Omit on LocalStack when using a custom Docker AMI: the Terraform AWS provider
   # calls DescribeImages before create when root_block_device is set, and
   # LocalStack returns InvalidAMIID.NotFound for docker-tagged AMIs even though
@@ -115,7 +114,14 @@ resource "aws_instance" "app" {
     for_each = var.skip_root_block_device ? [] : [1]
     content {
       volume_size = var.root_volume_size
+      encrypted   = true
     }
+  }
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
   }
 
   tags = {
@@ -139,11 +145,12 @@ resource "aws_instance" "app" {
 resource "aws_lb" "app" {
   count = var.enable_alb ? 1 : 0
 
-  name               = "${var.project_name}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.app.id]
-  subnets            = data.aws_subnets.default.ids
+  name                       = "${var.project_name}-alb"
+  internal                   = true # lab: ALB is IaC-only; nginx on the instance serves traffic
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.app.id]
+  subnets                    = data.aws_subnets.default.ids
+  drop_invalid_header_fields = true
 
   enable_deletion_protection = false # lab: `make destroy` has to run unattended
 
