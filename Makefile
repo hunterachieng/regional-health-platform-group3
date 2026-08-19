@@ -23,7 +23,13 @@ STATE_BUCKET    := regional-health-tfstate
 LOCK_TABLE      := regional-health-tflock
 REGION          := us-east-1
 LOCALSTACK_URL  := http://localhost:4566
-APP_URL         := http://localhost:3010
+
+# LocalStack's fake credentials — Terraform's S3 backend still requires *some*
+# creds in the environment even with skip_credentials_validation=true.
+export AWS_ACCESS_KEY_ID         ?= test
+export AWS_SECRET_ACCESS_KEY     ?= test
+export AWS_DEFAULT_REGION        ?= $(REGION)
+export AWS_EC2_METADATA_DISABLED ?= true
 
 # LocalStack's fake credentials — Terraform's S3 backend still requires *some*
 # creds in the environment even with skip_credentials_validation=true.
@@ -103,12 +109,9 @@ up: _tf-init
 # C8 — the grader check. Exits non-zero the moment ANY check fails, so CI
 # actually blocks on a broken deploy instead of reporting green regardless.
 #
-# TODO(blocked on Lwam — modules/service not implemented yet): the /healthz
-# and /readyz checks below are commented out because there's no server for
-# them to check yet. Uncomment once `make up` is also standing up the EC2
-# instance and you have a real URL to hit (probably via an output from
-# modules/service, not the hardcoded APP_URL above — that's the local
-# docker-compose port, not the LocalStack-deployed one).
+# app_url comes straight from Terraform's own output — never hardcoded —
+# so this checks the box actually standing right now, on your own state key,
+# not last week's IP or someone else's stack.
 # -----------------------------------------------------------------------------
 verify: _check-name
 	@echo ">> Running make verify for $(NAME)..."
@@ -123,14 +126,27 @@ verify: _check-name
 	else \
 	  echo "FAIL: terraform plan errored"; cat /tmp/verify-plan.txt; fail=1; \
 	fi; \
+	cd - >/dev/null; \
 	echo "-- gitleaks (zero findings expected) --"; \
 	if command -v gitleaks >/dev/null 2>&1; then \
 	  gitleaks detect --source=. --no-git -v || { echo "FAIL: gitleaks found something"; fail=1; }; \
 	else \
 	  echo "SKIP: gitleaks not installed locally — CI (Minage's pipeline) runs this"; \
 	fi; \
-	echo "-- app health (BLOCKED on modules/service) --"; \
-	echo "SKIP: /healthz and /readyz not wired up yet — no server exists until Lwam's module is merged"; \
+	echo "-- app health --"; \
+	app_url=$$(cd $(TF_DIR) && terraform output -raw app_url 2>/dev/null); \
+	if [ -z "$$app_url" ]; then \
+	  echo "FAIL: could not read app_url from terraform output — has 'make up' finished successfully?"; \
+	  fail=1; \
+	else \
+	  echo "   target: $$app_url"; \
+	  code=$$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$$app_url/healthz" || echo "000"); \
+	  if [ "$$code" = "200" ]; then echo "PASS: /healthz ($$code)"; \
+	  else echo "FAIL: /healthz returned $$code"; fail=1; fi; \
+	  code=$$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$$app_url/readyz" || echo "000"); \
+	  if [ "$$code" = "200" ]; then echo "PASS: /readyz ($$code)"; \
+	  else echo "FAIL: /readyz returned $$code — DB or secret resolution likely broken, see boot.log"; fail=1; fi; \
+	fi; \
 	if [ $$fail -ne 0 ]; then \
 	  echo ">> make verify: FAILED"; exit 1; \
 	fi; \

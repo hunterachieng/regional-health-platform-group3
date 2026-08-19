@@ -160,3 +160,62 @@ encryption block on real AWS paths.
   The S3 bucket that stores Terraform's notes can't be built by that same
   Terraform, because it needs that bucket to exist first. That's why
   `bootstrap.sh` is a plain script, not a `.tf` file.
+
+  ## 7. LocalStack's Docker-backed EC2 never launches a real container (Codespaces)
+ 
+**What happened:** `terraform apply` succeeds. `RunInstances` returns 200. LocalStack's
+own API reports the instance as `"running"`. But no matching Docker container ever
+appears (`docker ps` shows nothing beyond the LocalStack container itself), and the
+reported instance IP is completely unreachable — connections just time out, forever.
+ 
+**Why this matters:** this is the one piece of the assignment (C4 — app health checks
+against the deployed instance) that could not be completed as originally specified,
+despite everything upstream of it (Terraform, Secrets Manager, the module wiring)
+being correct and tested.
+ 
+**How it was investigated (ruled out, in order):**
+- License/auth token not set correctly — ruled out, confirmed `"edition": "pro"` and a
+  clean container start once the token was actually exported.
+- Missing `EC2_VM_MANAGER=docker` — set explicitly, no change.
+- Docker socket not mounted or wrong permissions — mounted correctly, container runs
+  as root, standard socket path confirmed (`/var/run/docker.sock`, group `docker`).
+- Docker daemon itself broken — ruled out; used successfully all session to build and
+  run other images.
+- Silent error in LocalStack's own process — ruled out; ran with `DEBUG=1`, zero
+  errors, exceptions, or warnings anywhere near the `RunInstances` call.
+- **Confirmed independently by a second team member (Hunter)**, on the same codebase,
+  same symptom: instance shows `"running"`, no container ever appears.
+**Conclusion:** this is a genuine limitation of LocalStack's Docker VM manager inside
+a GitHub Codespaces environment (itself a container-based sandbox — `systemd is not
+running in this container` was visible in diagnostics), not a bug in this repo's
+Terraform or application code.
+ 
+**How C3/C4 evidence was captured instead:** rather than skip this evidence
+entirely, the app was run directly (no LocalStack EC2, no Docker) using the exact
+same environment variables `modules/service`'s `user-data.sh` sets — `DB_SECRET_ARN`,
+`AWS_ENDPOINT_URL` pointed at the local LocalStack Secrets Manager, real AWS creds
+swapped for LocalStack's test creds. This proves the full credential chain (Terraform
+→ Secrets Manager → app → TLS → Aiven MySQL) works correctly, independent of whether
+LocalStack's EC2 emulation itself is functioning:
+ 
+```
+DB credentials loaded from Secrets Manager arn=...regional-health/wairimu/db-dGaHQV tls_ca_present=true
+MySQL pool ready host=mysql-devops-wairimuznganga-5928.c.aivencloud.com port=14044 tls=true
+capacity-api listening on :3000
+```
+ 
+`/healthz` → `{"status":"ok"}`, `/readyz` → `{"status":"ready"}` — see
+`evidence/03-secrets/boot.log`, `evidence/04-health/healthz.json`,
+`evidence/04-health/readyz.json`.
+ 
+**What this evidence does NOT prove:** that the EC2 instance, nginx reverse proxy, and
+security group work together as one deployed unit — that specific integration could
+not be exercised, since LocalStack never actually launched the container it claimed
+to. `user-data.sh` itself was never executed by LocalStack in this environment.
+ 
+**What I'd verify on real AWS:** nothing to verify by contrast — a real
+`aws ec2 run-instances` call launches an actual, reachable instance every time; this
+gap is 100% specific to LocalStack's local Docker-based EC2 emulation, and appears to
+be specific to (or at least triggered by) running inside an already-containerized dev
+environment like Codespaces.
+ 

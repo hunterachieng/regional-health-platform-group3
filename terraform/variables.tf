@@ -70,6 +70,12 @@ variable "instance_type" {
 }
 
 variable "app_ami_id" {
-  description = "AMI tag CI produced, form localstack-ec2/app:ami-<sha12>. No default on purpose — you must supply this deliberately, it changes on every image rebuild."
+  description = "AMI id CI produces, form ami-<sha12> (12 lowercase hex chars). Not the Docker tag — CI strips the localstack-ec2/app: prefix before setting TF_VAR_app_ami_id. No default on purpose — you must supply this deliberately, it changes on every image rebuild."
   type        = string
+}
+
+variable "skip_root_block_device" {
+  description = "Omit root_block_device on the EC2 instance. Set true in <name>.tfvars for LocalStack + custom Docker AMIs — Terraform's DescribeImages pre-check fails even though RunInstances succeeds."
+  type        = bool
+  default     = false
 }
