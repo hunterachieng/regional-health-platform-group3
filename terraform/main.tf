@@ -40,5 +40,6 @@ module "service" {
   db_port       = module.data.db_port
   app_ami_id    = var.app_ami_id
   instance_type = var.instance_type
+  skip_root_block_device = var.skip_root_block_device
   aws_region    = var.aws_region
 }
