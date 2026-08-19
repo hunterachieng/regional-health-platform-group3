@@ -4,8 +4,14 @@
 [33m│[0m [0m[0mThe parameter "dynamodb_table" is deprecated. Use parameter "use_lockfile"
 [33m│[0m [0minstead.
 [33m╵[0m[0m
-[0m[1mmodule.data.aws_secretsmanager_secret.db: Refreshing state... [id=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/wairimu/db-EGNRrX][0m
-[0m[1mmodule.data.aws_secretsmanager_secret_version.db: Refreshing state... [id=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/wairimu/db-EGNRrX|terraform-pWTM3uCui1T9WoJgp99LSbHp2J][0m
+[0m[1mmodule.service.data.aws_vpc.default: Reading...[0m[0m
+[0m[1mmodule.data.aws_secretsmanager_secret.db: Refreshing state... [id=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/wairimu/db-dGaHQV][0m
+[0m[1mmodule.data.aws_secretsmanager_secret_version.db: Refreshing state... [id=arn:aws:secretsmanager:us-east-1:000000000000:secret:regional-health/wairimu/db-dGaHQV|terraform-ZYNZd2JUqydRKQZDO6VPb0lXF9][0m
+[0m[1mmodule.service.data.aws_vpc.default: Read complete after 0s [id=vpc-c64cdf6256bd64d23][0m
+[0m[1mmodule.service.data.aws_subnets.default: Reading...[0m[0m
+[0m[1mmodule.service.aws_security_group.app: Refreshing state... [id=sg-c15ab2d913090c9a2][0m
+[0m[1mmodule.service.data.aws_subnets.default: Read complete after 0s [id=us-east-1][0m
+[0m[1mmodule.service.aws_instance.app: Refreshing state... [id=i-cc33a4a51a9d9ccc7][0m
 
 [0m[1m[32mNo changes.[0m[1m Your infrastructure matches the configuration.[0m
 
